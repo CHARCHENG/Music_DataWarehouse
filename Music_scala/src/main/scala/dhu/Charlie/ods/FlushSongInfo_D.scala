@@ -119,6 +119,7 @@ object FlushSongInfo_D {
     val udfGetAuthCompany = udf(getAuthCompany)
     val udfGetPublicMachineId = udf(getPublicMachineId)
 
+
     sparkSession.sql(s"use $hiveDataBase")
     sparkSession.table("TO_SONG_INFO_D")
       .withColumn("ALBUM", udfGetAlbumName(col("ALBUM")))

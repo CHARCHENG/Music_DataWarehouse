@@ -1,15 +1,16 @@
 package dhu.Charlie.test
 
-import dhu.Charlie.utills.ConfigUtils
+import dhu.Charlie.ods.FlushSongInfo_D.hiveMetaStore
+import dhu.Charlie.utills.{ConfigUtils, DateUtils}
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.functions._
 
 object test01 {
   def main(args: Array[String]): Unit = {
-    val sparkConf = new SparkConf().setMaster("local[*]").setAppName("generateLogFile")
-    val sc = new SparkContext(sparkConf)
-    val hdfsClientLogPath = ConfigUtils.HDFS_CLIENT_LOG_PATH
-    val originData = sc.textFile("D:\\code\\music_project\\Music_scala\\src\\main\\data\\currentday_clientlog.tar.gz")
-    val tempProcessData = originData.map(_.split("&")).filter(_.length == 6).map(line => (line(2), line(3)))
-    print(tempProcessData.foreach(print))
+    val hiveDataBase = ConfigUtils.HIVE_DATABASE
+    val sparkSession = SparkSession.builder().master("local[*]").config("hive.metastore.uris",hiveMetaStore).enableHiveSupport().getOrCreate()
+    sparkSession.sql(s"use $hiveDataBase")
+    sparkSession.table("TO_CLIENT_SONG_PLAY_OPERATE_REQ_D").show()
   }
 }

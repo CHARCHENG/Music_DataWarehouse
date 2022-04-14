@@ -14,7 +14,7 @@ object generateLogToHDFS {
       val sparkConf = new SparkConf().setMaster("local[*]").setAppName("generateLogFile")
       val sc = new SparkContext(sparkConf)
       val hdfsClientLogPath = ConfigUtils.HDFS_CLIENT_LOG_PATH
-      val originData = sc.textFile("D:\\code\\music_project\\Music_scala\\src\\main\\data\\currentday_clientlog.tar.gz")
+      val originData = sc.textFile(s"D:\\大学&研究生\\电子书\\音乐中心\\need\\datas\\$logDate")
       val tempProcessData = originData.map(_.split("&")).filter(_.length == 6).map(line => (line(2), line(3)))
       tempProcessData.filter(_._1.equals("MINIK_CLIENT_SONG_PLAY_OPERATE_REQ")).map(line => {
         val jsonValue = line._2
@@ -32,7 +32,7 @@ object generateLogToHDFS {
         songid + "\t" + mid + "\t" + optrateType + "\t" + uid + "\t" + consumeType + "\t" + durTime + "\t" + sessionId + "\t" + songName + "\t" + pkgId + "\t" + orderId
       }
       ).repartition(1).saveAsTextFile(
-        s"${hdfsClientLogPath}/all_client_tables/${logDate}/MINIK_CLIENT_SONG_PLAY_OPERATE_REQ",
+        s"${hdfsClientLogPath}/all_client_tables/$logDate",
       )
     }
   }

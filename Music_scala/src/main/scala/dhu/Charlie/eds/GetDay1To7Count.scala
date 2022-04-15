@@ -1,4 +1,4 @@
-package dhu.Charlie.dwd
+package dhu.Charlie.eds
 
 import dhu.Charlie.utills.{ConfigUtils, DateUtils}
 import org.apache.spark.sql.{SaveMode, SparkSession}

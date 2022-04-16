@@ -1,4 +1,4 @@
-package dhu.Charlie.eds
+package dhu.Charlie.eds.songs
 
 import dhu.Charlie.utills.{ConfigUtils, DateUtils}
 import org.apache.spark.sql.{SaveMode, SparkSession}
@@ -6,8 +6,9 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 object GetDay1To7Count {
   val hiveMetastoreUris = ConfigUtils.HIVE_METASTORE_URIS
   val dbName = "music"
+
   def main(args: Array[String]): Unit = {
-    if(args.length < 1){
+    if (args.length < 1) {
       println("请输入要生成报表的日期;")
       System.exit(1)
     }
@@ -34,29 +35,40 @@ object GetDay1To7Count {
     val earlyDay_7 = DateUtils.dateAdd(data, 7);
     // 统计7天内的点唱量
     sparkSession.sql(
-          s"""
-             |select songid as NBR,
-             |0 as RCT_7_SUPP_CNT,
-             |count(songid) as RCT_7_OrderTimes,
-             |count(distinct uid) as RCT_7_UID_CNT,
-             |count(distinct order_id) as RCT_7_ORDR_CNT
-             |from to_client_song_play_operate_req_d
-             |where data_dt >= $earlyDay_7 and data_dt <= $data
-             |group by songid;
+      s"""
+         |select songid as NBR,
+         |0 as RCT_7_SUPP_CNT,
+         |count(songid) as RCT_7_OrderTimes,
+         |count(distinct uid) as RCT_7_UID_CNT,
+         |count(distinct order_id) as RCT_7_ORDR_CNT
+         |from to_client_song_play_operate_req_d
+         |where data_dt >= $earlyDay_7 and data_dt <= $data
+
+             |gr
+
              |""".stripMargin).createTempView("DAY_7_COUNT_TABLE")
 
     val earlyDay_30 = DateUtils.dateAdd(data, 30);
 
     // 统计30天内的点唱量
-    sparkSession.sql(
+    sparkSession.
+      sql(
           s"""
-             |select songid as NBR,
-             |0 as RCT_30_SUPP_CNT,
-             |count(songid) as RCT_30_OrderTimes,
-             |count(distinct uid) as RCT_30_UID_CNT,
-             |count(distinct order_id) as RCT_30_ORDR_CNT
-             |from to_client_song_play_operate_req_d
-             |where data_dt >= $earlyDay_30 and data_dt <= $data
+
+         gid as NBR,
+
+         0_SUPP_CNT,
+             |count(song
+         OrderTimes,
+             |count(distinc
+         30_UID_CNT,
+             |count(distinct ord
+         30_ORDR_CNT
+             |from to_clien
+         erate_req_d
+             |where data_dt >= $earlyDay_30
+          and data_dt <= $data
+
              |group by songid;
              |""".stripMargin).createTempView("DAY_30_COUNT_TABLE")
 

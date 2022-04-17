@@ -1,6 +1,6 @@
 package dhu.Charlie.test
 
-import dhu.Charlie.ods.FlushSongInfo_D.hiveMetaStore
+import dhu.Charlie.ods.songs.FlushSongInfo_D.hiveMetaStore
 import dhu.Charlie.utills.{ConfigUtils, DateUtils}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}

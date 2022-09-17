@@ -41,7 +41,7 @@ object DateUtils {
    * @return
    */
     def dateAdd(dataTime: String, day: Int): String ={
-      val sdf = new SimpleDateFormat("yyyyMMdd")
+      val sdf = new SimpleDateFormat("yyyy-MM-dd")
       val date: Date = sdf.parse(dataTime)
       val calendar = Calendar.getInstance()
       calendar.setTime(date)

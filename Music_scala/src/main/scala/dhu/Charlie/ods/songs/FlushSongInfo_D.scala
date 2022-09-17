@@ -1,13 +1,15 @@
 package dhu.Charlie.ods.songs
 
 import com.alibaba.fastjson.{JSON, JSONArray, JSONObject}
-import dhu.Charlie.utills.{ConfigUtils, DateUtils}
+import dhu.Charlie.utills.{ConfigUtils, DateUtils, LoadingDataFromESWithSparkSql}
+import org.apache.spark.SparkConf
 import org.apache.spark.sql.functions.{col, lit, udf}
 import org.apache.spark.sql.{SaveMode, SparkSession}
 
 import scala.collection.mutable.ListBuffer
 
 object FlushSongInfo_D {
+
   val hiveDataBase = ConfigUtils.HIVE_DATABASE
   val hiveMetaStore = ConfigUtils.HIVE_METASTORE_URIS
   /**
@@ -112,8 +114,18 @@ object FlushSongInfo_D {
   def main(args: Array[String]): Unit = {
     // 设置操作的用户名
     System.setProperty("HADOOP_USER_NAME", "charlie")
+    val dbName = ConfigUtils.HIVE_DATABASE
+
     // 在本地模式下部署 Sparksql on Hive
-    val sparkSession = SparkSession.builder().master("local[*]").config("hive.metastore.uris", hiveMetaStore).enableHiveSupport().getOrCreate()
+    val conf = new SparkConf().setMaster("local[*]").setAppName("DWD_Songs_Msg_Product")
+
+    conf.set("es.index.auto.create", "true") //在spark中自动创建es中的索引
+    conf.set("es.nodes", "localhost")//设置在spark中连接es的url和端口
+    conf.set("es.port", "9200")
+    conf.set("es.nodes.wan.only", "true")
+    conf.set("hive.metastore.uris", hiveMetaStore)
+
+    val sparkSession = SparkSession.builder().config(conf).enableHiveSupport().getOrCreate()
 
     // 使用udf将函数类型参数getAlbumName转化为udf函数
     val udfGetAlbumName = udf(getAlbumName)
@@ -122,71 +134,79 @@ object FlushSongInfo_D {
     val udfGetAuthCompany = udf(getAuthCompany)
     val udfGetPublicMachineId = udf(getPublicMachineId)
 
+    LoadingDataFromESWithSparkSql.loadingDataFromEs(sparkSession, "ods_songs_msg", "TO_SONG_INFO_D")
 
-    sparkSession.sql(s"use $hiveDataBase")
     sparkSession.table("TO_SONG_INFO_D")
-      .withColumn("ALBUM", udfGetAlbumName(col("ALBUM")))
-      .withColumn("POST_TIME", udfGetPostTime(col("POST_TIME")))
-      .withColumn("SINGER1", udfProcessSingerInfo(col("SINGER_INFO"), lit(1), lit("name")))
-      .withColumn("SINGER1ID", udfProcessSingerInfo(col("SINGER_INFO"), lit(1), lit("id")))
-      .withColumn("SINGER2", udfProcessSingerInfo(col("SINGER_INFO"), lit(2), lit("name")))
-      .withColumn("SINGER2ID", udfProcessSingerInfo(col("SINGER_INFO"), lit(2), lit("id")))
-      .withColumn("AUTH_CO", udfGetAuthCompany(col("AUTH_CO")))
-      .withColumn("PRDCT_TYPE", udfGetPublicMachineId(col("PRDCT_TYPE")))
+      .withColumn("ALBUM", udfGetAlbumName(col("album")))
+      .withColumn("POST_TIME", udfGetPostTime(col("post_time")))
+      .withColumn("SINGER1", udfProcessSingerInfo(col("singer_info"), lit(1), lit("name")))
+      .withColumn("SINGER1ID", udfProcessSingerInfo(col("singer_info"), lit(1), lit("id")))
+      .withColumn("SINGER2", udfProcessSingerInfo(col("singer_info"), lit(2), lit("name")))
+      .withColumn("SINGER2ID", udfProcessSingerInfo(col("singer_info"), lit(2), lit("id")))
+      .withColumn("AUTH_CO", udfGetAuthCompany(col("authorized_company")))
+      .withColumn("PRDCT_TYPE", udfGetPublicMachineId(col("publish_to")))
       .createTempView("TEMP_TO_SONG_INFO_D")
 
-
+//
     /**
      * 清洗数据，将结果保存到 Hive TW_SONG_BASEINFO_D 表中
      */
+    sparkSession.sql(s"use $dbName")
+
     sparkSession.sql(
       """
-        | select NBR,
+        |select
+        |       source_id as NBR,
         |       nvl(NAME,OTHER_NAME) as NAME,
-        |       SOURCE,
+        |       source as SOURCE,
         |       ALBUM,
-        |       PRDCT,
-        |       LANG,
-        |       VIDEO_FORMAT,
-        |       DUR,
+        |       product as PRDCT,
+        |       language as LANG,
+        |       video_format as VIDEO_FORMAT,
+        |       duration as DUR,
         |       SINGER1,
         |       SINGER2,
         |       SINGER1ID,
         |       SINGER2ID,
         |       0 as MAC_TIME,
         |       POST_TIME,
-        |       PINYIN_FST,
-        |       PINYIN,
-        |       SING_TYPE,
-        |       ORI_SINGER,
+        |       pinyin_first as PINYIN_FST,
+        |       pinyin as PINYIN,
+        |       singing_type as SING_TYPE,
+        |       original_singer as ORI_SINGER,
         |       LYRICIST,
         |       COMPOSER,
-        |       BPM_VAL,
+        |       bpm as BPM_VAL,
         |       STAR_LEVEL,
-        |       VIDEO_QLTY,
-        |       VIDEO_MK,
-        |       VIDEO_FTUR,
-        |       LYRIC_FTUR,
-        |       IMG_QLTY,
+        |       video_quality as VIDEO_QLTY,
+        |       video_make as VIDEO_MK,
+        |       video_feature as VIDEO_FTUR,
+        |       lyric_feature as LYRIC_FTUR,
+        |       Image_quality as IMG_QLTY,
         |       SUBTITLES_TYPE,
-        |       AUDIO_FMT,
-        |       ORI_SOUND_QLTY,
-        |       ORI_TRK,
-        |       ORI_TRK_VOL,
-        |       ACC_VER,
-        |       ACC_QLTY,
-        |       ACC_TRK_VOL,
-        |       ACC_TRK,
+        |       audio_format as AUDIO_FMT,
+        |       original_sound_quality as ORI_SOUND_QLTY,
+        |       original_track_vol as ORI_TRK,
+        |       original_sound_quality as ORI_TRK_VOL,
+        |       accompany_version as ACC_VER,
+        |       accompany_quality as ACC_QLTY,
+        |       acc_track_vol as ACC_TRK_VOL,
+        |       accompany_track as ACC_TRK,
         |       WIDTH,
         |       HEIGHT,
-        |       VIDEO_RSVL,
-        |       SONG_VER,
-        |       AUTH_CO,
-        |       STATE,
+        |       video_resolution as VIDEO_RSVL,
+        |       song_version as SONG_VER,
+        |       authorized_company as AUTH_CO,
+        |       status as STATE,
         |       case when size(PRDCT_TYPE) =0 then NULL else PRDCT_TYPE  end as PRDCT_TYPE
         |    from TEMP_TO_SONG_INFO_D
-        |    where NBR != ''
-      """.stripMargin).write.mode(SaveMode.Overwrite).saveAsTable("TW_SONG_BASEINFO_D")
+        |    where source_id != ''
+        """.stripMargin)
+      .coalesce(1)
+      .write.mode(SaveMode.Overwrite)
+      .format("parquet")
+      .saveAsTable("TW_SONG_BASEINFO_D")
+
     println("------------------all finished--------------------------")
   }
 

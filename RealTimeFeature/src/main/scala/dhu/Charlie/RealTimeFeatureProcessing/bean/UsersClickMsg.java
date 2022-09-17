@@ -1,4 +1,4 @@
-package dhu.Charlie.RealTimeFeatureProcessing.etl.bean;
+package dhu.Charlie.RealTimeFeatureProcessing.bean;
 
 import lombok.Data;
 

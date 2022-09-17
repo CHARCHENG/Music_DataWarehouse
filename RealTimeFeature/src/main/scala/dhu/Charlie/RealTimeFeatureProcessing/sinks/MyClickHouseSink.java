@@ -1,6 +1,6 @@
 package dhu.Charlie.RealTimeFeatureProcessing.sinks;
 
-import dhu.Charlie.RealTimeFeatureProcessing.etl.bean.UsersClickMsg;
+import dhu.Charlie.RealTimeFeatureProcessing.bean.UsersClickMsg;
 import dhu.Charlie.RealTimeFeatureProcessing.utils.ClickHouseUtil;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;

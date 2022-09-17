@@ -10,6 +10,7 @@ import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.api.common.functions.RuntimeContext
+import org.apache.flink.configuration.{Configuration, RestOptions}
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer
 import org.elasticsearch.action.index.IndexRequest
@@ -22,10 +23,15 @@ import org.apache.http.HttpHost
 import java.util
 import java.util.Properties
 
-object ProcessUsersData2ClickHouseAndEs {
+object ProcessUsersData2ClickHouseAndEsAndKafka {
 
   def main(args: Array[String]): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
+//    val env = StreamExecutionEnvironment.getExecutionEnvironment
+
+    val conf = new Configuration()
+    conf.setString(RestOptions.BIND_PORT, "8083") // 指定访问端口
+    val env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf)
+
     env.setParallelism(1)
     env.enableCheckpointing(60 * 1000, CheckpointingMode.EXACTLY_ONCE)
     var path = "D:\\大学&研究生\\电子书\\音乐中心\\need\\datas\\"
@@ -83,8 +89,7 @@ object ProcessUsersData2ClickHouseAndEs {
 
     // 存入Kadka
     val properties = new Properties()
-    properties.put("bootstrap.servers", "Hadoop104:9092")
-    properties.put("zookeeper.connect", "Hadoop102:2181, Hadoop103:2181, Hadoop104:2181")
+    properties.put("bootstrap.servers", "hadoop104:9092")
     properties.put("group.id", "consumer_test_group")
 
 //    // Way1: 使用自定义的序列化类；
@@ -97,7 +102,7 @@ object ProcessUsersData2ClickHouseAndEs {
 
     // Way2：先将自定义类转化为Json字符串形式再发送到Kafka
     value
-      .map(x => JSON.toJSONString(x))
+      .map(x => JSON.toJSON(x).toString)
       .addSink(new FlinkKafkaProducer[String](
         "test1",
         new SimpleStringSchema(),

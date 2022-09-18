@@ -1,8 +1,6 @@
 package dhu.Charlie.RealTimeFeatureProcessing.bean;
 
-import lombok.Data;
 
-@Data
 public class UsersClickMsg {
     private String id;
     private String songid;
@@ -35,6 +33,110 @@ public class UsersClickMsg {
         this.songname = songname;
         this.pkg_id = pkg_id;
         this.order_id = order_id;
+        this.datetimes = datetimes;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getSongid() {
+        return songid;
+    }
+
+    public void setSongid(String songid) {
+        this.songid = songid;
+    }
+
+    public Integer getMid() {
+        return mid;
+    }
+
+    public void setMid(Integer mid) {
+        this.mid = mid;
+    }
+
+    public Integer getOptrate_type() {
+        return optrate_type;
+    }
+
+    public void setOptrate_type(Integer optrate_type) {
+        this.optrate_type = optrate_type;
+    }
+
+    public Long getUid() {
+        return uid;
+    }
+
+    public void setUid(Long uid) {
+        this.uid = uid;
+    }
+
+    public Integer getConsume_type() {
+        return consume_type;
+    }
+
+    public void setConsume_type(Integer consume_type) {
+        this.consume_type = consume_type;
+    }
+
+    public Integer getPlay_time() {
+        return play_time;
+    }
+
+    public void setPlay_time(Integer play_time) {
+        this.play_time = play_time;
+    }
+
+    public Integer getDur_time() {
+        return dur_time;
+    }
+
+    public void setDur_time(Integer dur_time) {
+        this.dur_time = dur_time;
+    }
+
+    public Integer getSession_id() {
+        return session_id;
+    }
+
+    public void setSession_id(Integer session_id) {
+        this.session_id = session_id;
+    }
+
+    public String getSongname() {
+        return songname;
+    }
+
+    public void setSongname(String songname) {
+        this.songname = songname;
+    }
+
+    public Integer getPkg_id() {
+        return pkg_id;
+    }
+
+    public void setPkg_id(Integer pkg_id) {
+        this.pkg_id = pkg_id;
+    }
+
+    public String getOrder_id() {
+        return order_id;
+    }
+
+    public void setOrder_id(String order_id) {
+        this.order_id = order_id;
+    }
+
+    public String getDatetimes() {
+        return datetimes;
+    }
+
+    public void setDatetimes(String datetimes) {
         this.datetimes = datetimes;
     }
 }

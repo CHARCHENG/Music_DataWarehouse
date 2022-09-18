@@ -1,4 +1,4 @@
-package dhu.Charlie.RealTimeFeatureProcessing.etl
+package dhu.Charlie.RealTimeFeatureProcessing.jobs
 
 import com.alibaba.fastjson.JSON
 import org.apache.flink.api.common.serialization.SimpleStringSchema
@@ -29,7 +29,7 @@ object ProcessUsersData2ClickHouseAndEsAndKafka {
 //    val env = StreamExecutionEnvironment.getExecutionEnvironment
 
     val conf = new Configuration()
-    conf.setString(RestOptions.BIND_PORT, "8083") // 指定访问端口
+    conf.setString(RestOptions.BIND_PORT, "8084") // 指定访问端口
     val env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf)
 
     env.setParallelism(1)
@@ -65,7 +65,7 @@ object ProcessUsersData2ClickHouseAndEsAndKafka {
             nObject.getString("songname"),
             nObject.getString("pkg_id").toInt,
             nObject.getString("order_id"),
-            ProductRandomTime.getFormatRandomTime(dates.concat(" 13:00:00"), dates.concat(" 17:30:00")))
+            ProductRandomTime.getFormatRandomTime(dates.concat(" 13:13:00"), dates.concat(" 13:30:00")))
         }
       )
 
@@ -89,7 +89,7 @@ object ProcessUsersData2ClickHouseAndEsAndKafka {
 
     // 存入Kadka
     val properties = new Properties()
-    properties.put("bootstrap.servers", "hadoop104:9092")
+    properties.put("bootstrap.servers", "hadoop102:9092")
     properties.put("group.id", "consumer_test_group")
 
 //    // Way1: 使用自定义的序列化类；
@@ -101,10 +101,12 @@ object ProcessUsersData2ClickHouseAndEsAndKafka {
 //    ))
 
     // Way2：先将自定义类转化为Json字符串形式再发送到Kafka
+    val topicName = "test02";
+
     value
       .map(x => JSON.toJSON(x).toString)
       .addSink(new FlinkKafkaProducer[String](
-        "test1",
+        topicName,
         new SimpleStringSchema(),
         properties
       ))

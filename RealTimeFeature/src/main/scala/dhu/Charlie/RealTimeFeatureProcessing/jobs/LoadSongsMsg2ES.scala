@@ -1,4 +1,4 @@
-package dhu.Charlie.RealTimeFeatureProcessing.etl
+package dhu.Charlie.RealTimeFeatureProcessing.jobs
 
 import com.alibaba.fastjson.JSON
 import com.ververica.cdc.connectors.mysql.MySqlSource
@@ -20,7 +20,7 @@ import java.util
 object LoadSongsMsg2ES {
   def main(args: Array[String]): Unit = {
     val conf = new Configuration()
-    conf.setString(RestOptions.BIND_PORT, "8083") // 指定访问端口
+    conf.setString(RestOptions.BIND_PORT, "8085") // 指定访问端口
     val env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(conf)
 
     env.setParallelism(1)
